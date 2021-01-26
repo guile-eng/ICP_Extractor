@@ -20,7 +20,7 @@ class ToolTip(object):
         self.text = text
         if self.tipwindow or not self.text:
             return
-        x, y, cy = self.widget.bbox("insert")
+        x, y,cx, cy = self.widget.bbox("insert")
         x = x + self.widget.winfo_rootx() + 40
         y = y + cy + self.widget.winfo_rooty() +10
         self.tipwindow = tw = tk.Toplevel(self.widget)
@@ -146,19 +146,18 @@ def l_names ():
 
 def sample_name_filter():
 
+  global erase
+
   select_dup1=[]
   erase=text.split('\n')
-  print('====================================================================')
-  print(erase)
   select_samples1=list(dict.fromkeys(select_samples['Label']))
-  print('-----------------------------------------------------------------------------')
-  print(select_samples)
+
   for i in select_samples1:
     s01=i
     for x in erase:
       s01= s01.replace(x,'')
       s01= s01.strip()
-      print(s01)
+ 
     select_dup1.append(s01)
 
   select_dup=list(dict.fromkeys(select_dup1))
@@ -238,15 +237,26 @@ def filter():
     l01=[]
     l02=[]
 
+    keys= dict.fromkeys(erase)
+    print(keys)
+
     for x in select_dup:
       for y in select_elements['Elements']:
         slc1=csv_final[csv_final['Label'].str.contains(x, regex=False)]
         slc2=slc1[slc1['Element']==y]
-        # print(slc2)
         slc_avr= pd.to_numeric(slc2['Concentration'], errors='coerce').mean()
         list_average.append(slc_avr)
         slc_std= pd.to_numeric(slc2['Concentration'], errors='coerce').std()
         list_standard.append(slc_std)
+
+        # for z in erase:
+        #   slc3=csv_final[csv_final['Label'].str.contains(z, regex=False)]
+        #   slc_avr3= pd.to_numeric(slc3['Concentration'], errors='coerce').mean()
+          
+        #   keys[z].append(1)
+          
+
+        
         l01.append(x)
         l02.append(y)
       l01.append('')
@@ -255,7 +265,9 @@ def filter():
       list_standard.append('')
     
     data={'Label':l01,'Element': l02 , 'Average': list_average, 'STD': list_standard}
-    f_rep= pd.DataFrame.from_dict(data)
+    f_data= dict(data)
+    f_data.update(keys)
+    f_rep= pd.DataFrame.from_dict(f_data)
 
     print(f_rep)
 
