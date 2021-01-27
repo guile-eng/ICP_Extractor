@@ -1,8 +1,10 @@
+from numpy.lib.function_base import append
+from numpy.lib.shape_base import split
 import pandas as pd
 import numpy as np
 from pandas import DataFrame as df
 import tkinter as tk
-from tkinter import messagebox, ttk, filedialog
+from tkinter import LabelFrame, Toplevel, messagebox, ttk, filedialog
 from datetime import datetime
 
 #-----------------------------------------------CLASSES
@@ -145,8 +147,9 @@ def l_names ():
   print(list_names)
 
 def sample_name_filter():
-
   global erase
+  text = t.get('1.0', tk.END)
+  calculate()
 
   select_dup1=[]
   erase=text.split('\n')
@@ -155,8 +158,9 @@ def sample_name_filter():
   for i in select_samples1:
     s01=i
     for x in erase:
-      s01= s01.replace(x,'')
-      s01= s01.strip()
+      for y in x.split(' '):
+        s01= s01.replace(y,'')
+        s01= s01.strip()
  
     select_dup1.append(s01)
 
@@ -184,9 +188,28 @@ def loadcsv():
 
   setupw()
 
+def id_filter():
+  global erase_id
+
+  select_samples1 = list(dict.fromkeys(list_samples['Label']))
+
+  erase_id = []
+
+  for i in select_samples1:
+      s01 = i
+      i01 = i.split(' ',1)
+      try:
+        i02 = i01[1:]
+        for x in i02:
+          if x not in erase_id:
+            erase_id.append(x)
+      except:
+        pass
+
+  print(erase_id)
+
 def calculate ():
-  global v_s
-  global v_e
+  global select_date,select_elements,select_samples
   i=0
   vve=[]
   vvs=[]
@@ -200,16 +223,14 @@ def calculate ():
   v_s = pd.DataFrame(vvs)
   v_e = pd.DataFrame(vve, columns=list_elements.columns)
 
+  select_samples = list_names.loc[v_s[0], :]
+  select_date = list_date.loc[v_s[0], :]
+  select_elements = list_elements[v_e].dropna()
+
 def filter():
-  global select_date, select_elements, select_samples, text
+  global text
   calculate()
   
-  select_samples=list_names.loc[v_s[0],:]
-  select_date=list_date.loc[v_s[0],:]
-  select_elements=list_elements[v_e].dropna()
-
-  text=t.get('1.0',tk.END)
-
   sl=[]
   csv_final=pd.DataFrame(sl, columns=list_samples.columns)
 
@@ -238,6 +259,7 @@ def filter():
     l02=[]
 
     keys= dict.fromkeys(erase)
+    keys.pop('', None)
     print(keys)
 
     for x in select_dup:
@@ -249,22 +271,25 @@ def filter():
         slc_std= pd.to_numeric(slc2['Concentration'], errors='coerce').std()
         list_standard.append(slc_std)
 
-        # for z in erase:
-        #   slc3=csv_final[csv_final['Label'].str.contains(z, regex=False)]
-        #   slc_avr3= pd.to_numeric(slc3['Concentration'], errors='coerce').mean()
-          
-        #   keys[z].append(1)
-          
+        for q in keys.keys():
+            slc3=slc2[slc2['Label'].str.contains(q, regex=False)]
+            re_avr=pd.to_numeric(slc3['Concentration'], errors='coerce').mean()
+            if keys[q]==None:
+                keys[q]=([re_avr])
+            else:
+                keys[q].append(re_avr)
 
-        
         l01.append(x)
         l02.append(y)
       l01.append('')
       l02.append('')
       list_average.append('')
       list_standard.append('')
+      for z in keys.keys():
+        keys[z].append('')
     
     data={'Label':l01,'Element': l02 , 'Average': list_average, 'STD': list_standard}
+
     f_data= dict(data)
     f_data.update(keys)
     f_rep= pd.DataFrame.from_dict(f_data)
@@ -281,6 +306,7 @@ def filter():
     print(csv_final)
     csv_final.to_csv('./ICP_Report.csv', index = False)
     T.insert(tk.END,current_t() +" - Report has been created!\n")
+
 
 #-----------------------------------------------Root window
 root= tk.Tk()
@@ -303,6 +329,7 @@ T =tk.Text(frame3, height=10, width=100)
 T.grid(row=0) 
 
 T.insert(tk.END, current_t() + " - Click 'Help' button to read the instructions \n")
+
 
 #-----------------------------------------------Top windows
 
@@ -345,6 +372,7 @@ def help_w():
 
 
 def setupw():
+  global id_sample, text
   global setup
   global vars
   global vare
@@ -447,12 +475,35 @@ def setupw():
   t_h=tk.Label(frame_calc,text='?',fg='blue')
   t_h.pack()
 
+  id_filter()
+
   t =tk.Text(frame_calc, height=10, width=10)
   t.pack()
+  for x in erase_id:
+    t.insert(tk.END, x+"\n")
 
-  t.insert(tk.END, "A\nB\nC\na\nb\nc\nR\nr")
+  
+
+  def w_samples():
+    w_s = tk.Toplevel()
+    w_s.title(" ICP Data setup")
+    w_s.geometry("100x350")
+    w_s_frame = tk.LabelFrame(w_s, text="Samples NIR", height=20, width=10)
+    w_s_frame.pack()
+    t1 = tk.Text(w_s_frame, height=20, width=10)
+    t1.pack()
+    names=sample_name_filter()
+    for x in names:
+      t1.insert(tk.END, x+"\n")
+
+    t1.configure(state=tk.DISABLED)
+
+
+  b_preview = tk.Button(frame_calc, text="Preview",command=w_samples, height=1, width=225)
+  b_preview.pack()
   button_c=tk.Button(frame_calc,text="Create Report", command=filter, height=1, width=225)
   button_c.pack()
+
 
 
   createToolTip(t_h,"*Only for Calc.Report. It removes the suffixes in the list to calculate the report properly \n(Ex: 1234 A -> 1234 or 98765 aR -> 98765)")
