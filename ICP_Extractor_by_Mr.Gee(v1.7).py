@@ -310,7 +310,7 @@ def filter():
 
 #-----------------------------------------------Root window
 root= tk.Tk()
-root.title(" ICP Data Extractor by Mr.Gee (v. 1.6)")
+root.title(" ICP Data Extractor by Mr.Gee (v. 1.7)")
 
 frame1=tk.LabelFrame(root,padx=10, pady=10, bd=0)
 frame1.grid(row=0, column=0)
