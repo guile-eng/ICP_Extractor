@@ -6,6 +6,7 @@ from pandas import DataFrame as df
 import tkinter as tk
 from tkinter import LabelFrame, Toplevel, messagebox, ttk, filedialog
 from datetime import datetime
+import re
 
 #-----------------------------------------------CLASSES
 
@@ -272,13 +273,14 @@ def filter():
         list_standard.append(slc_std)
 
         for q in keys.keys():
-            slc3=slc2[slc2['Label'].str.contains(q, regex=False)]
-            re_avr=pd.to_numeric(slc3['Concentration'], errors='coerce').mean()
-            if keys[q]==None:
-                keys[q]=([re_avr])
+            slc3 = slc2[slc2['Label'].str.contains(q + '$', regex=True, case=True)]
+            re_avr = pd.to_numeric(slc3['Concentration'], errors='coerce').mean() 
+            if keys[q] == None:
+                keys[q] = ([re_avr])
             else:
                 keys[q].append(re_avr)
 
+                
         l01.append(x)
         l02.append(y)
       l01.append('')
