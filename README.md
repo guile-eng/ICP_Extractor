@@ -9,7 +9,8 @@ This is the stable version of the ICP Data Extractor. This application filters a
 
   2. Check the Setup options you want 
     
-    - noblk= remove the blank samples, nostd= remove the standard samples
+    - noblk= remove the blank samples
+    - nostd= remove the standard samples
     - nohno3= remove samples that have HNO in their label name
     - Selec. All Samples = Start the loading screen with all samples selected
     - Selec. All Samples = Start the loading screen with all elements selected
