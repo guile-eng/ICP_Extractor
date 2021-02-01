@@ -16,9 +16,33 @@ def configfile():
 
     config = configparser.ConfigParser()
 
-    config['DEFAULT'] = {'data': '45', 'template': 'yes', 'asd': '9'}
-
-    config['TEMPLATE'] = {'Al': '' , '/': ''}
+    config['DEFAULT'] = {"1": "Al 308.215",
+                         "2": "Ca 430.253",
+                         "3": "P 213.618",
+                         "4": "K 766.491",
+                         "5": "Na 589.592",
+                         "6": "Fe 238.204",
+                         "7": "/",
+                         "8": "As 188.980",
+                         "9": "B 249.772",
+                         "10": "Cd 214.439",
+                         "11": "Co 258.033",
+                         "12": "Cr 267.716",
+                         "13": "Cu 327.395",
+                         "14": "Hg 194.164",
+                         "15": "Mg 279.553",
+                         "16": "Mn 257.610",
+                         "17": "Mo 202.032",
+                         "18": "Ni 225.385",
+                         "19": "Ni 227.877",
+                         "20": "Pb 220.353",
+                         "21": "Sb 206.834",
+                         "22": "Si 251.611",
+                         "23": "Sn 189.925",
+                         "24": "Ti 336.122",
+                         "25": "V 319.068",
+                         "26": "Zn 213.857",
+                         "27": "Zn 472.215"}
 
     with open('setup.ini', 'w') as configfile:
         config.write(configfile)
@@ -27,13 +51,19 @@ def configfile():
 def rconfig():
     global config
     config = configparser.ConfigParser()
-    config.read('setup.ini')
 
-configfile()
+    if len(config.read('setup.ini'))==0:
+        configfile()
+        rconfig()
+    else:
+        config.read('setup.ini')
+
+
+    
 rconfig()
 
-for key in config['TEMPLATE']:
-    print(key)
+for key,value in config.items('DEFAULT'):
+    print(f'"{key}":"{value}",')
 
 
 setup = tk.Tk()

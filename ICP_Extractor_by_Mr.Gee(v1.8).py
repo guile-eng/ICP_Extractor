@@ -1,5 +1,5 @@
 from tkinter.constants import MULTIPLE
-from numpy.lib.function_base import append
+from numpy.lib.function_base import append, insert
 from numpy.lib.shape_base import split
 import pandas as pd
 import numpy as np
@@ -8,6 +8,8 @@ import tkinter as tk
 from tkinter import LabelFrame, Toplevel, messagebox, ttk, filedialog
 from datetime import datetime
 import re
+import configparser
+
 
 #-----------------------------------------------CLASSES
 
@@ -71,7 +73,7 @@ def openFile ():
 
   pathname = filedialog.askopenfilename(initialdir="/user/desktop", title="Select file ...", filetypes= ( ("CSV file", ".csv"),("All files", "*.*") )  )
   tk.Label(framecsv,text=pathname, height=1, width=50 ).pack(side=tk.BOTTOM)
-  csvfile=pd.read_csv(pathname,header=2)
+  csvfile=pd.read_csv(pathname,header=int(config['CSVSETUP']['header']))
   a= tk.IntVar()
   checknoblk = tk.Checkbutton(framecsv, text="No Blank", variable=a)
   checknoblk.pack(side=tk.LEFT)
@@ -323,7 +325,7 @@ def filter():
 
 #-----------------------------------------------Root window
 root= tk.Tk()
-root.title(" ICP Data Extractor by Mr.Gee (v. 1.8.1)")
+root.title(" ICP Data Extractor by Mr.Gee (v. 1.8.5 - Carbery) ")
 
 frame1=tk.LabelFrame(root,padx=10, pady=10, bd=0)
 frame1.grid(row=0, column=0)
@@ -460,7 +462,13 @@ def setupw():
   def space():
     elements1.insert(tk.END,"/")
 
+  def carbery():
+    
+    for key,value in config.items('DEFAULT'):
+      elements1.insert(tk.END,value)
+    
 
+  #Buttons selected elements frame
   frame_b_sel= tk.LabelFrame(frame_e1, bd=0)
   frame_b_sel.pack()
 
@@ -474,6 +482,8 @@ def setupw():
   b_spc = tk.Button(frame_b_sel, text=" / ",
                           command=space, height=1, width=3)
   b_spc.grid(row=0,column=2)
+
+ 
 
 
   for i in list_elements["Elements"]:
@@ -510,7 +520,7 @@ def setupw():
 
 
 
-#Radio Buttons
+  #Radio Buttons
 
   frame_calc=tk.LabelFrame(setup,text="Final Report", cursor="arrow",padx=10, pady=10)
   frame_calc.place( width=120, x=370)
@@ -541,7 +551,7 @@ def setupw():
 
   ShowChoice()
 
-#List replicate names
+  #List replicate names
   t_text=tk.Label(frame_calc,text='Replicates id:\n(per line)')
   t_text.pack()
 
@@ -571,11 +581,15 @@ def setupw():
 
     t1.configure(state=tk.DISABLED)
 
-#Calculate buttons
+  #Calculate buttons
+  b_carbery = tk.Button(frame_calc, text="Load template\n(Carbery)",
+                          command=carbery, height=2, width=15)
+  b_carbery.pack()
   b_preview = tk.Button(frame_calc, text="Preview",command=w_samples, height=1, width=225)
   b_preview.pack()
   button_c=tk.Button(frame_calc,text="Create Report", command=filter, height=1, width=225)
   button_c.pack()
+
 
 
 
@@ -593,6 +607,56 @@ button_quit=tk.Button(frame2,text="Exit", command=root.quit, height=1, width=15)
 button_quit.grid(row=3, column=0)
 button_help=tk.Button(frame2,text="Help", command=help_w, height=1, width=15)
 button_help.grid(row=2, column=0)
+
+#--------------------------------------------------------------------Setup File
+def configfile():
+
+    config = configparser.ConfigParser()
+
+    config['DEFAULT'] = {"1": "Al 308.215",
+                         "2": "Ca 430.253",
+                         "3": "P 213.618",
+                         "4": "K 766.491",
+                         "5": "Na 589.592",
+                         "6": "Fe 238.204",
+                         "7": "/",
+                         "8": "As 188.980",
+                         "9": "B 249.772",
+                         "10": "Cd 214.439",
+                         "11": "Co 258.033",
+                         "12": "Cr 267.716",
+                         "13": "Cu 327.395",
+                         "14": "Hg 194.164",
+                         "15": "Mg 279.553",
+                         "16": "Mn 257.610",
+                         "17": "Mo 202.032",
+                         "18": "Ni 225.385",
+                         "19": "Ni 227.877",
+                         "20": "Pb 220.353",
+                         "21": "Sb 206.834",
+                         "22": "Si 251.611",
+                         "23": "Sn 189.925",
+                         "24": "Ti 336.122",
+                         "25": "V 319.068",
+                         "26": "Zn 213.857",
+                         "27": "Zn 472.215"}
+    config['CSVSETUP'] ={"header": "5"}
+    with open('setup.ini', 'w') as configfile:
+        config.write(configfile)
+
+def rconfig():
+    global config
+    config = configparser.ConfigParser()
+
+    if len(config.read('setup.ini')) == 0:
+        configfile()
+        rconfig()
+    else:
+        config.read('setup.ini')
+
+rconfig()
+
+
 
 root.mainloop()
 
