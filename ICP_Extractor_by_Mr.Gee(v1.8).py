@@ -1,3 +1,4 @@
+from tkinter.constants import MULTIPLE
 from numpy.lib.function_base import append
 from numpy.lib.shape_base import split
 import pandas as pd
@@ -209,6 +210,7 @@ def id_filter():
 
   print(erase_id)
 
+
 def calculate ():
   global select_date,select_elements,select_samples
   i=0
@@ -216,27 +218,38 @@ def calculate ():
   vvs=[]
   for x in range(len(vars)):
     i=vars[x].get()
-    vvs.append(i)
-  for x in range(len(vare)):
-    i=vare[x].get()
-    vve.append(i)
-
+    vvs.append(i)  
   v_s = pd.DataFrame(vvs)
-  v_e = pd.DataFrame(vve, columns=list_elements.columns)
+
 
   select_samples = list_names.loc[v_s[0], :]
   select_date = list_date.loc[v_s[0], :]
-  select_elements = list_elements[v_e].dropna()
+  select_elements = elements1.get(0,tk.END)
+
+
 
 def filter():
   global text
   calculate()
+
+  def calc_space(value):
+    if value==0:
+      l01.append('')
+      l02.append('')
+      list_average.append('')
+      list_standard.append('')
+      for z in keys.keys():
+        keys[z].append('')
+    if value==1:
+      pass
+
+
   
   sl=[]
   csv_final=pd.DataFrame(sl, columns=list_samples.columns)
 
   for x in select_date['Date Time']:
-    for y in select_elements["Elements"]:
+    for y in select_elements:
       select1=list_samples[list_samples['Date Time']==x]
       select2=select1[select1["Element"]==y]
       csv_final=csv_final.append(select2)
@@ -264,31 +277,29 @@ def filter():
     print(keys)
 
     for x in select_dup:
-      for y in select_elements['Elements']:
-        slc1=csv_final[csv_final['Label'].str.contains(x, regex=False)]
-        slc2=slc1[slc1['Element']==y]
-        slc_avr= pd.to_numeric(slc2['Concentration'], errors='coerce').mean()
-        list_average.append(slc_avr)
-        slc_std= pd.to_numeric(slc2['Concentration'], errors='coerce').std()
-        list_standard.append(slc_std)
+      for y in select_elements:
+        if y!="/":
+          slc1=csv_final[csv_final['Label'].str.contains(x, regex=False)]
+          slc2=slc1[slc1['Element']==y]
+          slc_avr= pd.to_numeric(slc2['Concentration'], errors='coerce').mean()
+          list_average.append(slc_avr)
+          slc_std= pd.to_numeric(slc2['Concentration'], errors='coerce').std()
+          list_standard.append(slc_std)
 
-        for q in keys.keys():
+          for q in keys.keys():
             slc3 = slc2[slc2['Label'].str.contains(q + '$', regex=True, case=True)]
             re_avr = pd.to_numeric(slc3['Concentration'], errors='coerce').mean() 
             if keys[q] == None:
                 keys[q] = ([re_avr])
             else:
                 keys[q].append(re_avr)
+          l01.append(x)
+          l02.append(y)
 
-                
-        l01.append(x)
-        l02.append(y)
-      l01.append('')
-      l02.append('')
-      list_average.append('')
-      list_standard.append('')
-      for z in keys.keys():
-        keys[z].append('')
+        else:
+          calc_space(0)
+      calc_space(0)
+      calc_space(0)
     
     data={'Label':l01,'Element': l02 , 'Average': list_average, 'STD': list_standard}
 
@@ -309,6 +320,7 @@ def filter():
     csv_final.to_csv('./ICP_Report.csv', index = False)
     T.insert(tk.END,current_t() +" - Report has been created!\n")
 
+
 #-----------------------------------------------Root window
 root= tk.Tk()
 root.title(" ICP Data Extractor by Mr.Gee (v. 1.8.1)")
@@ -324,7 +336,6 @@ frame3.grid(row=1, column=0)
 
 frame_csv(0)
 
-#Event log
 
 T =tk.Text(frame3, height=10, width=100)
 T.grid(row=0) 
@@ -376,8 +387,7 @@ def setupw():
   global id_sample, text
   global setup
   global vars
-  global vare
-  global op_v
+  global elements1
   global t
 
   l_names()
@@ -414,34 +424,93 @@ def setupw():
   
   checklist.configure(state="disabled")# disable the widget so users can't insert text into it
 
-  frame_e=tk.LabelFrame(setup,text="Elements", cursor="arrow")
-  frame_e.place( width=150, x=200)
+  # List box all elements
+  frame_e= LabelFrame(setup, text="Elements")
+  frame_e.place(width=150, x=200, height=200)
 
-  scrollbary = tk.Scrollbar(frame_e)
-  scrollbary.pack(side=tk.RIGHT, fill=tk.Y)
-  scrollbarx = tk.Scrollbar(frame_e, orient=tk.HORIZONTAL)
-  scrollbarx.pack(side=tk.BOTTOM, fill=tk.X)
-  checklist = tk.Text(frame_e, width=15)
-  checklist.pack(side=tk.BOTTOM, expand=True)
+  scrollbary0 = tk.Scrollbar(frame_e)
+  scrollbary0.pack(side=tk.RIGHT, fill=tk.Y)
+  elements = tk.Listbox(frame_e, yscrollcommand=scrollbary0.set, selectmode=tk.EXTENDED)
+  elements.pack(side=tk.BOTTOM, expand=True)
 
-  vare = []
+  scrollbary0.config(command=elements.yview)
+
+  # List box selected elements
+
+  frame_e1 = LabelFrame(setup, text="Selected elements")
+  frame_e1.place(width=150, x=200, height=220, y=200)
+
+  scrollbary1 = tk.Scrollbar(frame_e1)
+  scrollbary1.pack(side=tk.RIGHT, fill=tk.Y)
+ 
+  elements1 = tk.Listbox(frame_e1, yscrollcommand=scrollbary1.set, selectmode=tk.EXTENDED)
+  elements1.pack()
+
+  scrollbary1.config(command=elements1.yview)
+
+  def sel_all():
+    for x in elements.get(0, tk.END):
+      elements1.insert(tk.END,x)
+    
+
+  def desel_all():
+    for x in range(len(elements.get(0, tk.END))):
+      elements1.delete(0)
+
+  def space():
+    elements1.insert(tk.END,"/")
+
+
+  frame_b_sel= tk.LabelFrame(frame_e1, bd=0)
+  frame_b_sel.pack()
+
+  b_sel_all = tk.Button(frame_b_sel, text="Sel.All",
+                       command=sel_all, height=1, width=5)
+  b_sel_all.grid(row=0,column=0)
+
+  b_desel_all = tk.Button(frame_b_sel, text="Rem.all",
+                        command=desel_all, height=1, width=5)
+  b_desel_all.grid(row=0,column=1)
+  b_spc = tk.Button(frame_b_sel, text=" / ",
+                          command=space, height=1, width=3)
+  b_spc.grid(row=0,column=2)
+
+
   for i in list_elements["Elements"]:
-    var = tk.BooleanVar()
+    elements.insert(tk.END, i)
+    if (all_e == 1):
+      elements1.insert(tk.END, i)
 
-    vare.append(var)
-    checkbutton = tk.Checkbutton(checklist, text=i, variable=var, bg="white")
-    checklist.window_create("end", window=checkbutton)
-    checklist.insert("end", "\n")
-    checklist.config(yscrollcommand=scrollbary.set, cursor="arrow")
-    checklist.config(xscrollcommand=scrollbarx.set)
-    if (all_e==1):
-      checkbutton.select()
+  def adicionar(self):
 
-  scrollbary.config(command=checklist.yview)
-  scrollbarx.config(command=checklist.xview)
+    if len(elements.curselection())==1:
+      elements1.insert(tk.END, elements.get(elements.curselection()))
+    else:
+      for x in elements.curselection():
+        elements1.insert(tk.END, elements.get(x))
 
-  
-  checklist.configure(state="disabled")#
+
+
+
+  def remover(self):
+ 
+    if len(elements1.curselection())==1:
+      elements1.delete(elements1.curselection())
+    else:
+      for x in reversed(elements1.curselection()):
+        elements1.delete(tk.END, x)
+
+
+  elements.bind('<Double-Button-1>', adicionar)
+  elements1.bind('<Double-Button-1>', remover)
+  elements.bind('<Return>', adicionar)
+  elements1.bind('<Return>', remover)
+
+
+
+
+
+#Radio Buttons
 
   frame_calc=tk.LabelFrame(setup,text="Final Report", cursor="arrow",padx=10, pady=10)
   frame_calc.place( width=120, x=370)
@@ -452,6 +521,8 @@ def setupw():
   options = [("Report", 1),
            ("Full Report", 2),
              ("Calc. Report", 3)]
+
+
 
   def ShowChoice():
     global op_v
@@ -470,6 +541,7 @@ def setupw():
 
   ShowChoice()
 
+#List replicate names
   t_text=tk.Label(frame_calc,text='Replicates id:\n(per line)')
   t_text.pack()
 
@@ -499,7 +571,7 @@ def setupw():
 
     t1.configure(state=tk.DISABLED)
 
-
+#Calculate buttons
   b_preview = tk.Button(frame_calc, text="Preview",command=w_samples, height=1, width=225)
   b_preview.pack()
   button_c=tk.Button(frame_calc,text="Create Report", command=filter, height=1, width=225)
