@@ -1,3 +1,4 @@
+print("Loading...")
 from tkinter.constants import MULTIPLE
 from numpy.lib.function_base import append, insert
 from numpy.lib.shape_base import split
@@ -325,7 +326,8 @@ def filter():
 
 #-----------------------------------------------Root window
 root= tk.Tk()
-root.title(" ICP Data Extractor by Mr.Gee (v. 1.8.5 - Carbery) ")
+root.title(" ICP Data Extractor by Mr.Gee (v. 1.8.6 - Carbery) ")
+# root.iconbitmap('icon.ico')
 
 frame1=tk.LabelFrame(root,padx=10, pady=10, bd=0)
 frame1.grid(row=0, column=0)
@@ -351,6 +353,7 @@ def help_w():
   help = tk.Toplevel()
   help.title(" Help")
   help.geometry("500x500")
+  # help.iconbitmap('icon.ico')
 
   frame_about=tk.LabelFrame(help,text="Support/Bugs")
   frame_about.pack(side=tk.TOP)
@@ -396,6 +399,7 @@ def setupw():
   setup = tk.Toplevel()
   setup.title(" ICP Data setup")
   setup.geometry("500x450")
+  # setup.iconbitmap('icon.ico')
 
   frame_s=tk.LabelFrame(setup,text="Samples", cursor="arrow")
   frame_s.place( width=150, x=25)
@@ -640,7 +644,8 @@ def configfile():
                          "25": "V 319.068",
                          "26": "Zn 213.857",
                          "27": "Zn 472.215"}
-    config['CSVSETUP'] ={"header": "5"}
+    config['CSVSETUP'] ={"header": "5", "AutoHeader": "False"}
+
     with open('setup.ini', 'w') as configfile:
         config.write(configfile)
 
@@ -657,6 +662,6 @@ def rconfig():
 rconfig()
 
 
-
+print("Load completed!")
 root.mainloop()
 
